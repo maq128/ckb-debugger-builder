@@ -1,0 +1,20 @@
+FROM riscv-gnu-toolchain:latest as builder
+
+ENV PATH=/root/.cargo/bin:/riscv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+RUN curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain nightly-2021-12-25 -y \
+ && rustup target add riscv64imac-unknown-none-elf
+
+COPY ./build/ckb-binary-patcher /build/ckb-binary-patcher
+RUN cargo install --path /build/ckb-binary-patcher --locked
+
+COPY ./build/ckb-standalone-debugger /build/ckb-standalone-debugger
+RUN cargo install --path /build/ckb-standalone-debugger/bins --locked
+
+
+FROM riscv-gnu-toolchain:latest
+
+ENV PATH=/root/.cargo/bin:/riscv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+RUN curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain nightly-2021-12-25 -y \
+ && rustup target add riscv64imac-unknown-none-elf
+
+COPY --from=builder /root/.cargo /root/.cargo

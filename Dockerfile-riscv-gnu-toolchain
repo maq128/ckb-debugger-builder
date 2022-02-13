@@ -1,0 +1,14 @@
+FROM archlinux:latest as builder
+
+RUN pacman -Syu --noconfirm git autoconf automake curl python3 libmpc mpfr gmp gawk base-devel bison flex texinfo gperf libtool patchutils bc zlib expat
+RUN git clone https://github.com/riscv-collab/riscv-gnu-toolchain /riscv \
+ && cd /riscv \
+ && ./configure --prefix=/opt/riscv \
+ && make
+
+FROM archlinux:latest
+
+RUN pacman -Syu --noconfirm git autoconf automake curl python3 libmpc mpfr gmp gawk base-devel bison flex texinfo gperf libtool patchutils bc zlib expat
+
+ENV PATH=/riscv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+COPY --from=builder /opt/riscv /riscv
